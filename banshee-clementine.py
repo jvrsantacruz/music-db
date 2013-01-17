@@ -185,7 +185,7 @@ class Dbfile(object):
         use overwrite to avoid this.
         """
         # Get cursors for backup files
-        tocur, fromcur = self.conn.cursor(), self.conn.cursor()
+        tocur, fromcur = self.conn.cursor(), from_db.conn.cursor()
         overw = 'overwrite' if overwrite else 'noverwrite'
 
         # Query all tracks from 'from_db'
