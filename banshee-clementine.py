@@ -173,7 +173,7 @@ class Dbfile(object):
                 for table in tests:
                     cursor.execute("SELECT * FROM {0} LIMIT 1".format(table))
             except sqlite3.DatabaseError:
-                logging.debug("Failed query using table {1}".format(table))
+                logging.debug("Failed query using table {0}".format(table))
                 dbformat = None
             else:
                 # If all tests for a given format passed, that's it
