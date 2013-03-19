@@ -135,8 +135,7 @@ class Dbfile(object):
         try:
             return sqlite3.connect(dbpath)
         except sqlite3.DatabaseError, err:
-            error("Couldn't connect to database in {0}: {1}"
-                  .format(dbpath, err))
+            error("Couldn't connect to database in {}: {}".format(dbpath, err))
 
     def row(self, rawrow):
         "Returns a RowOperations object from a given sqlite row"
@@ -146,7 +145,7 @@ class Dbfile(object):
         elif self.format is 'clementine':
             return ClementineRow(rawrow)
         else:
-            error("Unkown format for dbfile: {0}".format(self.dbpath))
+            error("Unkown format for dbfile: {}".format(self.dbpath))
 
     def backup_db(self):
         """Backs the destination database into a temporary file.
@@ -155,10 +154,10 @@ class Dbfile(object):
         with tempfile.NamedTemporaryFile(delete=False) as bkfile:
             with open(self.dbpath, 'r') as origfile:
                 shutil.copyfileobj(origfile, bkfile)
-                logging.info("Backed up {0} to {1}".format(self.dbpath, bkfile.name))
+                logging.info("Backed up {} to {}".format(self.dbpath, bkfile.name))
                 return bkfile.name
 
-        error("Couldn't backup {0}".format(self.dbpath))
+        error("Couldn't backup {}".format(self.dbpath))
 
     def detect_format(self):
         """Returns the format for the database which conn is connected:
@@ -171,9 +170,9 @@ class Dbfile(object):
             dbformat = db
             try:
                 for table in tests:
-                    cursor.execute("SELECT * FROM {0} LIMIT 1".format(table))
+                    cursor.execute("SELECT * FROM {} LIMIT 1".format(table))
             except sqlite3.DatabaseError:
-                logging.debug("Failed query using table {0}".format(table))
+                logging.debug("Failed query using table {}".format(table))
                 dbformat = None
             else:
                 # If all tests for a given format passed, that's it
@@ -189,28 +188,28 @@ class Dbfile(object):
         overw = 'overwrite' if overwrite else 'noverwrite'
 
         # Query all tracks from 'from_db'
-        logging.info("Retrieving data from {0}".format(from_db.dbpath))
+        logging.info("Retrieving data from {}".format(from_db.dbpath))
         try:
             fromcur.execute(self._QUERIES[from_db.format]['extract'])
         except sqlite3.DatabaseError, err:
-            error("Error detected while extracting from {0}: {1}"\
+            error("Error detected while extracting from {}: {}"\
                 .format(from_db.dbpath, str(err)))
 
         # Update database
-        logging.info("Updating {0}'s ratings and counters".format(self.dbpath))
+        logging.info("Updating {}'s ratings and counters".format(self.dbpath))
         counter = 0
         for row in fromcur:
             row = from_db.row(row)
 
             # Check whether the row should be updated
             if not row.check():
-                logging.debug("Ignoring row: {0}".format(row.row))
+                logging.debug("Ignoring row: {}".format(row.row))
                 continue
 
             # Transform numeric schemes from from_db to this db format
             row.transform(self.format)
 
-            logging.debug("Changing row: {0}".format(row.row))
+            logging.debug("Changing row: {}".format(row.row))
 
             try:
                 tocur.execute(self._QUERIES[self.format]['update'][overw],
@@ -222,10 +221,10 @@ class Dbfile(object):
                                 "skip":    int(row['skip']) })
 
             except sqlite3.DatabaseError, err:
-                error("Error detected while updating db: {0}".format(err))
+                error("Error detected while updating db: {}".format(err))
             counter += 1
 
-        logging.info("{0} tracks successfully updated".format(counter))
+        logging.info("{} tracks successfully updated".format(counter))
 
     def close(self):
         "Closes internal connection"
@@ -238,10 +237,10 @@ class Dbfile(object):
         try:
             shutil.move(self.bkpath, self.dbpath)
         except shutil.Error:
-            error("Couldn't overwrite {1} with {0}"
-                  .format(self.dbpath, self.bkpath))
+            error("Couldn't overwrite {} with {}"
+                  .format(self.bkpath, self.dbpath))
         else:
-            logging.info("Updated {0}".format(self.dbpath))
+            logging.info("Updated {}".format(self.dbpath))
 
 
 class RowOperations(object):
@@ -280,7 +279,7 @@ class RowOperations(object):
         if isinstance(key, str):
             key = self._find(key)
             if key is None:
-                raise IndexError("{0} is not a field of row".format(key))
+                raise IndexError("{} is not a field of row".format(key))
 
         return self.row[key]
 
@@ -288,7 +287,7 @@ class RowOperations(object):
         if isinstance(key, str):
             key = self._find(key)
             if key is None:
-                raise IndexError("{0} is not a field of row".format(key))
+                raise IndexError("{} is not a field of row".format(key))
 
         self.row[key] = val
 
