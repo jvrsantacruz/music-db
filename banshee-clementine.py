@@ -28,7 +28,6 @@ class Dbfile(object):
 
     _QUERIES = {
         'banshee': {
-
             'extract': """
             SELECT CoreArtists.Name, CoreAlbums.Title, CoreTracks.Title,
             CoreTracks.Rating, CoreTracks.PlayCount, CoreTracks.SkipCount
@@ -44,40 +43,40 @@ class Dbfile(object):
 
             'update': {
                 'overwrite': """
-                              UPDATE CoreTracks
-                              SET Rating = :rating,
-                                  PlayCount = :play,
-                                  SkipCount = :skip
-                              WHERE CoreTracks.TrackID = (
-                                SELECT CoreTracks.TrackID
-                                FROM CoreTracks
-                                INNER JOIN CoreArtists
-                                  ON CoreTracks.ArtistID = CoreArtists.ArtistID
-                                INNER JOIN CoreAlbums
-                                  ON CoreTracks.AlbumID = CoreAlbums.AlbumID
-                                WHERE  CoreTracks.Title = :title
-                                  AND CoreArtists.Name = :artist
-                                  AND CoreAlbums.Title = :album
-                                LIMIT 1);
-                              """,
+                UPDATE CoreTracks
+                SET Rating = :rating,
+                PlayCount = :play,
+                SkipCount = :skip
+                WHERE CoreTracks.TrackID = (
+                SELECT CoreTracks.TrackID
+                FROM CoreTracks
+                INNER JOIN CoreArtists
+                ON CoreTracks.ArtistID = CoreArtists.ArtistID
+                INNER JOIN CoreAlbums
+                ON CoreTracks.AlbumID = CoreAlbums.AlbumID
+                WHERE  CoreTracks.Title = :title
+                AND CoreArtists.Name = :artist
+                AND CoreAlbums.Title = :album
+                LIMIT 1);
+                """,
 
                 'noverwrite': """
-                                UPDATE CoreTracks
-                                SET Rating = :rating,
-                                    PlayCount = PlayCount + :play,
-                                    SkipCount = SkipCount + :skip
-                                WHERE CoreTracks.TrackID = (
-                                  SELECT CoreTracks.TrackID
-                                  FROM CoreTracks
-                                  INNER JOIN CoreArtists
-                                  ON CoreTracks.ArtistID = CoreArtists.ArtistID
-                                  INNER JOIN CoreAlbums
-                                  ON CoreTracks.AlbumID = CoreAlbums.AlbumID
-                                  WHERE  CoreTracks.Title = :title
-                                    AND CoreArtists.Name = :artist
-                                    AND CoreAlbums.Title = :album
-                                  LIMIT 1);
-                                """
+                UPDATE CoreTracks
+                SET Rating = :rating,
+                PlayCount = PlayCount + :play,
+                SkipCount = SkipCount + :skip
+                WHERE CoreTracks.TrackID = (
+                SELECT CoreTracks.TrackID
+                FROM CoreTracks
+                INNER JOIN CoreArtists
+                ON CoreTracks.ArtistID = CoreArtists.ArtistID
+                INNER JOIN CoreAlbums
+                ON CoreTracks.AlbumID = CoreAlbums.AlbumID
+                WHERE  CoreTracks.Title = :title
+                AND CoreArtists.Name = :artist
+                AND CoreAlbums.Title = :album
+                LIMIT 1);
+                """
             }
     },
 
@@ -94,33 +93,34 @@ class Dbfile(object):
 
             'update': {
                 'overwrite': """
-                              UPDATE songs
-                              SET rating = :rating,
-                              playcount = :play,
-                              skipcount = :skip
-                              WHERE artist = :artist
-                              AND album = :album
-                              AND title = :title;
-                              """
-                             ,
+                UPDATE songs
+                SET rating = :rating,
+                playcount = :play,
+                skipcount = :skip
+                WHERE artist = :artist
+                AND album = :album
+                AND title = :title;
+                """
+                ,
 
                 'noverwrite':  """
-                               UPDATE songs
-                               SET rating = :rating,
-                               playcount = playcount + :play,
-                               skipcount = skipcount + :skip
-                               WHERE artist = :artist
-                               AND album = :album
-                               AND title = :title;
-                               """
+                UPDATE songs
+                SET rating = :rating,
+                playcount = playcount + :play,
+                skipcount = skipcount + :skip
+                WHERE artist = :artist
+                AND album = :album
+                AND title = :title;
+                """
             }
         }
     }
 
     # Known tables for each format
-    _TABLES = { 'banshee': ['CoreTracks', 'CoreAlbums', 'CoreArtists'],
-               'clementine': ['songs', 'playlists', 'playlist_items']
-              }
+    _TABLES = {
+        'banshee': ['CoreTracks', 'CoreAlbums', 'CoreArtists'],
+        'clementine': ['songs', 'playlists', 'playlist_items']
+    }
 
     def __init__(self, dbpath):
         self.dbpath = dbpath
@@ -192,8 +192,8 @@ class Dbfile(object):
         try:
             fromcur.execute(self._QUERIES[from_db.format]['extract'])
         except sqlite3.DatabaseError, err:
-            error("Error detected while extracting from {}: {}"\
-                .format(from_db.dbpath, str(err)))
+            error("Error detected while extracting from {}: {}"
+                  .format(from_db.dbpath, str(err)))
 
         # Update database
         logging.info("Updating {}'s ratings and counters".format(self.dbpath))
@@ -212,13 +212,16 @@ class Dbfile(object):
             logging.debug("Changing row: {}".format(row.row))
 
             try:
-                tocur.execute(self._QUERIES[self.format]['update'][overw],
-                              { "artist":  row['artist'],
-                                "album":   row['album'],
-                                "title":   row['title'],
-                                "rating":  float(row['rating']),
-                                "play":    int(row['play']),
-                                "skip":    int(row['skip']) })
+                data = dict(
+                    artist=row['artist'],
+                    album=row['album'],
+                    title=row['title'],
+                    rating=float(row['rating']),
+                    play=int(row['play']),
+                    skip=int(row['skip'])
+                )
+
+                tocur.execute(self._QUERIES[self.format]['update'][overw], data)
 
             except sqlite3.DatabaseError, err:
                 error("Error detected while updating db: {}".format(err))
