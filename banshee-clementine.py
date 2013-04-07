@@ -134,7 +134,7 @@ class Dbfile(object):
         "Opens and returns a sqlite connection"
         try:
             return sqlite3.connect(dbpath)
-        except sqlite3.DatabaseError, err:
+        except sqlite3.DatabaseError as err:
             error("Couldn't connect to database in {}: {}".format(dbpath, err))
 
     def row(self, rawrow):
@@ -191,7 +191,7 @@ class Dbfile(object):
         logging.info("Retrieving data from {}".format(from_db.dbpath))
         try:
             fromcur.execute(self._QUERIES[from_db.format]['extract'])
-        except sqlite3.DatabaseError, err:
+        except sqlite3.DatabaseError as err:
             error("Error detected while extracting from {}: {}"
                   .format(from_db.dbpath, str(err)))
 
@@ -223,7 +223,7 @@ class Dbfile(object):
 
                 tocur.execute(self._QUERIES[self.format]['update'][overw], data)
 
-            except sqlite3.DatabaseError, err:
+            except sqlite3.DatabaseError as err:
                 error("Error detected while updating db: {}".format(err))
             counter += 1
 
